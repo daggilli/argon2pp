@@ -1,4 +1,5 @@
 argon2pp
+argon2hash
 *.o
 *.d
 .vscode
