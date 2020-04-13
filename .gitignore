@@ -1,0 +1,4 @@
+argon2pp
+*.o
+*.d
+.vscode
