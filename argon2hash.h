@@ -30,21 +30,21 @@ namespace Argon2Hash {
 
       if (vec.size() >= 3)
         for (auto i = 0; i < vec.size() / 3; i++) {
-          outBuf[0] = symbols[(vec[j] >> 2) & 63];
-          outBuf[1] = symbols[(vec[j] & 3) << 4 | (vec[j + 1] >> 4) & 15];
-          outBuf[2] = symbols[(vec[j + 1] & 15) << 2 | (vec[j + 2] >> 6) & 3];
-          outBuf[3] = symbols[vec[j + 2] & 63];
+          outBuf[0] = symbols[(vec[j] >> 2) & 0b111111];
+          outBuf[1] = symbols[(vec[j] & 0b11) << 4 | (vec[j + 1] >> 4) & 0b1111];
+          outBuf[2] = symbols[(vec[j + 1] & 0b1111) << 2 | (vec[j + 2] >> 6) & 0b11];
+          outBuf[3] = symbols[vec[j + 2] & 0b111111];
           enc.write(outBuf, 4);
           j += 3;
         }
 
       if (auto r = vec.size() - j) {
-        outBuf[0] = symbols[(vec[j] >> 2) & 63];
+        outBuf[0] = symbols[(vec[j] >> 2) & 0b111111];
         if (r == 1) {
-          outBuf[1] = symbols[(vec[j] & 3) << 4];
+          outBuf[1] = symbols[(vec[j] & 0b11) << 4];
         } else {
-          outBuf[1] = symbols[(vec[j] & 3) << 4 | (vec[j + 1] >> 4) & 15];
-          outBuf[2] = symbols[(vec[j + 1] & 15) << 2];
+          outBuf[1] = symbols[(vec[j] & 0b11) << 4 | (vec[j + 1] >> 4) & 0b1111];
+          outBuf[2] = symbols[(vec[j + 1] & 0b1111) << 2];
         }
         enc.write(outBuf, r + 1);
       }
