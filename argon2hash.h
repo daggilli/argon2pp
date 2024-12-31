@@ -11,8 +11,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <functional>
-#include <iostream>
-#include <memory>
+#include <ios>
 #include <random>
 #include <sstream>
 #include <stdexcept>
@@ -20,7 +19,12 @@
 #include <vector>
 
 namespace Argon2Hash {
+  constexpr uint32_t DEFAULT_TIME_COST = 6;
+  constexpr uint32_t DEFAULT_MEMORY_COST = 65536;
+  constexpr uint32_t DEFAULT_PARALLELISM = 8;
+  constexpr std::size_t DEFAULT_HASH_LENGTH = 64;
   constexpr std::size_t DEFAULT_SALT_LEN = 16;
+
   using namespace std::placeholders;
 
   using ByteVector = std::vector<uint8_t>;
@@ -32,14 +36,13 @@ namespace Argon2Hash {
       std::ostringstream enc;
       char outBuf[4];
 
-      auto d = vec.data();
       std::size_t j = 0;
 
       if (vec.size() >= 3)
-        for (auto i = 0; i < vec.size() / 3; i++) {
+        for (size_t i = 0; i < vec.size() / 3; i++) {
           outBuf[0] = symbols[(vec[j] >> 2) & 0b111111];
-          outBuf[1] = symbols[(vec[j] & 0b11) << 4 | (vec[j + 1] >> 4) & 0b1111];
-          outBuf[2] = symbols[(vec[j + 1] & 0b1111) << 2 | (vec[j + 2] >> 6) & 0b11];
+          outBuf[1] = symbols[(vec[j] & 0b11) << 4 | ((vec[j + 1] >> 4) & 0b1111)];
+          outBuf[2] = symbols[(vec[j + 1] & 0b1111) << 2 | ((vec[j + 2] >> 6) & 0b11)];
           outBuf[3] = symbols[vec[j + 2] & 0b111111];
           enc.write(outBuf, 4);
           j += 3;
@@ -50,7 +53,7 @@ namespace Argon2Hash {
         if (r == 1) {
           outBuf[1] = symbols[(vec[j] & 0b11) << 4];
         } else {
-          outBuf[1] = symbols[(vec[j] & 0b11) << 4 | (vec[j + 1] >> 4) & 0b1111];
+          outBuf[1] = symbols[(vec[j] & 0b11) << 4 | ((vec[j + 1] >> 4) & 0b1111)];
           outBuf[2] = symbols[(vec[j + 1] & 0b1111) << 2];
         }
         enc.write(outBuf, r + 1);
@@ -61,10 +64,11 @@ namespace Argon2Hash {
   }  // namespace
 
   struct Argon2Config {
-    uint32_t timeCost;
-    uint32_t memoryCost;
-    uint32_t parallelism;
-    std::size_t hashLength;
+    // reasonable default values
+    uint32_t timeCost = DEFAULT_TIME_COST;
+    uint32_t memoryCost = DEFAULT_MEMORY_COST;
+    uint32_t parallelism = DEFAULT_PARALLELISM;
+    std::size_t hashLength = DEFAULT_HASH_LENGTH;
     std::size_t saltLength = DEFAULT_SALT_LEN;
   };
 
@@ -81,6 +85,8 @@ namespace Argon2Hash {
   };
 
   using Argon2hash = struct Argon2Hash;
+
+  constexpr Argon2Config ARGON2_CONFIG_DEFAULT{};
 
   std::ostream &operator<<(std::ostream &os, const Argon2Hash &argon) {
     os << std::dec << "$" << argon.algName << "$v=" << argon.version << "$m=" << argon.memoryCost << ",t=" << argon.timeCost
@@ -211,6 +217,7 @@ namespace Argon2Hash {
 
   class Argon2d : public Argon2 {
    public:
+    Argon2d() : Argon2(argon2d_hash_raw, Argon2_d, "argon2d", ARGON2_CONFIG_DEFAULT) {}
     Argon2d(const Argon2Config &conf) : Argon2(argon2d_hash_raw, Argon2_d, "argon2d", conf) {}
     static int verify(const std::string &encoded, const std::string &message) {
       return Argon2::verify(encoded, message, Argon2_d);
@@ -219,6 +226,7 @@ namespace Argon2Hash {
 
   class Argon2i : public Argon2 {
    public:
+    Argon2i() : Argon2(argon2i_hash_raw, Argon2_i, "argon2i", ARGON2_CONFIG_DEFAULT) {}
     Argon2i(const Argon2Config &conf) : Argon2(argon2i_hash_raw, Argon2_i, "argon2i", conf) {}
     static int verify(const std::string &encoded, const std::string &message) {
       return Argon2::verify(encoded, message, Argon2_i);
@@ -227,10 +235,19 @@ namespace Argon2Hash {
 
   class Argon2id : public Argon2 {
    public:
+    Argon2id() : Argon2(argon2id_hash_raw, Argon2_id, "argon2id", ARGON2_CONFIG_DEFAULT) {}
     Argon2id(const Argon2Config &conf) : Argon2(argon2id_hash_raw, Argon2_id, "argon2id", conf) {}
     static int verify(const std::string &encoded, const std::string &message) {
       return Argon2::verify(encoded, message, Argon2_id);
     }
   };
+
+  static ByteVector makeVector(const std::string &str) {
+    ByteVector vec;
+    vec.resize(str.length());
+    vec.assign(str.data(), str.data() + str.length());
+
+    return vec;
+  }
 }  // namespace Argon2Hash
 #endif
