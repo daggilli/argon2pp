@@ -36,7 +36,7 @@ int main() {
   auto verifyResult = Argon2Hash::Argon2id::verify(hashString.str(), passStr);
   std::cout << std::format("VERIFY RETURNED {}, VERIFICATION {}.\n", verifyResult, (verifyResult ? "FAILED" : "SUCCEEDED"));
 
-  // corrupt the has; this will fail and throw
+  // corrupt the hash; this will fail and throw
   auto mangledHash = std::string(hashString.str());
   std::fill(mangledHash.begin() + 32, mangledHash.begin() + 48, 'X');
   std::cout << "MANGLED HASH: " << mangledHash << "\n";
