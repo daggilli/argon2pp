@@ -3,3 +3,4 @@ argon2hash
 *.o
 *.d
 .vscode
+.clang-format
