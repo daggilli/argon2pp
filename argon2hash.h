@@ -1,5 +1,14 @@
+// Copyright (c) 2024, 2025, David Gillies
+// All rights reserved.
+
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree.
+
 #ifndef __ARGON2HASH_H__
 #define __ARGON2HASH_H__
+#include <argon2.h>
+
+#include <algorithm>
 #include <cstdint>
 #include <functional>
 #include <iostream>
@@ -9,8 +18,6 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-
-#include <argon2.h>
 
 namespace Argon2Hash {
   constexpr std::size_t DEFAULT_SALT_LEN = 16;
